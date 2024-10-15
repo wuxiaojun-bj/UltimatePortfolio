@@ -27,6 +27,18 @@ class DataController: ObservableObject {
             container.persistentStoreDescriptions.first?.url = URL(filePath: "/dev/null")
         }
 
+        //自动将发生在底层持久存储的任何更改应用于我们的视图上下文，以便两者保持同步，
+        container.viewContext.automaticallyMergesChangesFromParent = true
+        
+        //告诉Core Data如何处理合并本地和远程数据
+        container.viewContext.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
+        
+        //告诉Core Data，我们希望在商店更改时收到通知
+        container.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+
+        //告诉系统在发生更改时调用我们的newremoteStoreChanged remoteStoreChanged()方法。
+        NotificationCenter.default.addObserver(forName: .NSPersistentStoreRemoteChange, object: container.persistentStoreCoordinator, queue: .main, using: remoteStoreChanged)
+
         container.loadPersistentStores { storeDescription, error in
             if let error {
                 fatalError("Fatal error loading store: \(error.localizedDescription)")
@@ -92,5 +104,10 @@ class DataController: ObservableObject {
 
         save()
     }
+    
+    func remoteStoreChanged(_ notification: Notification) {
+        objectWillChange.send()
+    }
+
 }
 
