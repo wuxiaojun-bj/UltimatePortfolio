@@ -21,6 +21,8 @@
 		3F6BB0BA2CB67850004C7582 /* Filter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6BB0B92CB67850004C7582 /* Filter.swift */; };
 		3FF1C2722CBD057500D86564 /* Issue-CoreDataHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FF1C2712CBD057500D86564 /* Issue-CoreDataHelpers.swift */; };
 		3FF1C2742CBD0B2C00D86564 /* Tag-CoreDataHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FF1C2732CBD0B2C00D86564 /* Tag-CoreDataHelpers.swift */; };
+		3FFDF5582CBF717D006E37DC /* IssueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FFDF5572CBF717D006E37DC /* IssueView.swift */; };
+		3FFDF55A2CBF7191006E37DC /* NoIssueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FFDF5592CBF7191006E37DC /* NoIssueView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +42,8 @@
 		3F6BB0B92CB67850004C7582 /* Filter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Filter.swift; sourceTree = "<group>"; };
 		3FF1C2712CBD057500D86564 /* Issue-CoreDataHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Issue-CoreDataHelpers.swift"; sourceTree = "<group>"; };
 		3FF1C2732CBD0B2C00D86564 /* Tag-CoreDataHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tag-CoreDataHelpers.swift"; sourceTree = "<group>"; };
+		3FFDF5572CBF717D006E37DC /* IssueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueView.swift; sourceTree = "<group>"; };
+		3FFDF5592CBF7191006E37DC /* NoIssueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoIssueView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,6 +87,8 @@
 				3F6BB0B52CB67401004C7582 /* ContentViewMe.swift */,
 				3F51FECD2CBE472A0007DB02 /* IssueRow.swift */,
 				3F6BB0B72CB67449004C7582 /* DetailView.swift */,
+				3FFDF5572CBF717D006E37DC /* IssueView.swift */,
+				3FFDF5592CBF7191006E37DC /* NoIssueView.swift */,
 				3F2A01E32CBCCDA7000B3014 /* test.swift */,
 				3F6BB0AD2CB65A0B004C7582 /* Main.xcdatamodeld */,
 				3F6BB0A32CB657EF004C7582 /* Assets.xcassets */,
@@ -174,11 +180,13 @@
 				3F51FECE2CBE472A0007DB02 /* IssueRow.swift in Sources */,
 				3F6BB0AF2CB65A0B004C7582 /* Main.xcdatamodeld in Sources */,
 				3F6BB0A22CB657ED004C7582 /* ContentView.swift in Sources */,
+				3FFDF5582CBF717D006E37DC /* IssueView.swift in Sources */,
 				3F6BB0B42CB673CB004C7582 /* SidebarView.swift in Sources */,
 				3F6BB0B82CB67449004C7582 /* DetailView.swift in Sources */,
 				3F2A01E42CBCCDA7000B3014 /* test.swift in Sources */,
 				3F6BB0B12CB660CA004C7582 /* DataControlle.swift in Sources */,
 				3F6BB0BA2CB67850004C7582 /* Filter.swift in Sources */,
+				3FFDF55A2CBF7191006E37DC /* NoIssueView.swift in Sources */,
 				3F6BB0B62CB67401004C7582 /* ContentViewMe.swift in Sources */,
 				3F6BB0A02CB657ED004C7582 /* UltimatePortfolioMeApp.swift in Sources */,
 			);
