@@ -29,9 +29,11 @@ extension Issue {
     
     var issueStatus: String {
         if completed {
-            return "Closed"
+            return String(localized: "Closed")
+        //    return "Closed"
         } else {
-            return "Open"
+            return String(localized: "Open")
+           // return "Open"
         }
     }
     
@@ -41,10 +43,12 @@ extension Issue {
     }
     
     var issueTagsList: String {
-        guard let tags else { return "No tags" }
+        guard let tags else {  return String(localized: "No tags") }
 
         if tags.count == 0 {
-            return "No tags"
+            return String(localized: "No tags")
+            //String(localized: "NAME")
+            //return "No tags"
         } else {
             return issueTags.map(\.tagName).formatted()
         }

@@ -24,7 +24,6 @@ struct IssueView: View {
                     
                     Text("**Status:** \(issue.issueStatus)")
                         .foregroundStyle(.secondary)
-                    
                 }
                 
                 Picker("Priority", selection: $issue.priority) {
@@ -33,38 +32,7 @@ struct IssueView: View {
                     Text("High").tag(Int16(2))
                 }
                 
-                Menu {
-                    // 首先显示选定的标签
-                    ForEach(issue.issueTags) { tag in
-                        Button {
-                            issue.removeFromTags(tag)
-                        } label: {
-                            Label(tag.tagName, systemImage: "checkmark")
-                        }
-                    }
-                    
-                    // 现在显示未选择的标签
-                    let otherTags = dataController.missingTags(from: issue)
-                    
-                    if otherTags.isEmpty == false {
-                        Divider()
-                        
-                        Section("Add Tags") {
-                            ForEach(otherTags) { tag in
-                                Button(tag.tagName) {
-                                    issue.addToTags(tag)
-                                }
-                            }
-                        }
-                    }
-                } label: {
-                    Text(issue.issueTagsList)
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .animation(nil, value: issue.issueTagsList)
-
-                }
-                
+                TagsMenuView(issue: issue)
             }
             
             Section {
@@ -73,7 +41,12 @@ struct IssueView: View {
                         .font(.title2)
                         .foregroundStyle(.secondary)
                     
-                    TextField("Description", text: $issue.issueContent, prompt: Text("Enter the issue description here"), axis: .vertical)
+                    TextField(
+                        "Description",
+                        text: $issue.issueContent,
+                        prompt: Text("Enter the issue description here"),
+                        axis: .vertical
+                    )
                 }
             }
             
@@ -83,8 +56,14 @@ struct IssueView: View {
         .onReceive(issue.objectWillChange) { _ in
             dataController.queueSave()
         }
+        .onSubmit(dataController.save)
+        .toolbar {
+            IssueViewToolbar(issue: issue)
+        }
+
 
 //如果他们选择一个问题，然后调出侧边栏并删除所选问题，我们不应该让他们尝试进行任何进一步的更改。
+//onReceive()修饰符自动排队保存，onSubmit()修饰符立即运行保存
     }
 }
 

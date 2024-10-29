@@ -18,36 +18,36 @@ struct SidebarView: View {
             Filter(id: tag.tagID, name: tag.tagName, icon: "tag", tag: tag)
         }
     }
-
+    //标签的重命名
+    //重命名哪个标签
+    @State private var tagToRename: Tag?
+    //重命名目前是否正在进行中
+    @State private var renamingTag = false
+    //新标签名称
+    @State private var tagName = ""
 
     var body: some View {
+        
         List(selection: $dataController.selectedFilter) {
             Section("Smart Filters") {
-                ForEach(smartFilters) { filter in
-                    NavigationLink(value: filter) {
-                        Label(filter.name, systemImage: filter.icon)
-                    }
-                }
+                ForEach(smartFilters, content: SmartFilterRow.init)
             }
 
             Section("Tags") {
                 ForEach(tagFilters) { filter in
-                    NavigationLink(value: filter) {
-                        Label(filter.name, systemImage: filter.icon)
-                            .badge(filter.tag?.tagActiveIssues.count ?? 0)
-                    }
+                    UserFilterRow(filter: filter, rename: rename, delete: delete)
                 }
                 .onDelete(perform: delete)
             }
         }
-        .toolbar {
-            Button {
-                dataController.deleteAll()
-                dataController.createSampleData()
-            } label: {
-                Label("ADD SAMPLES", systemImage: "flame")
-            }
+        .toolbar(content: SidebarViewToolbar.init)
+        .alert("Rename tag", isPresented: $renamingTag) {
+            Button("OK", action: completeRename)
+            Button("Cancel", role: .cancel) { }
+            TextField("New name", text: $tagName)
         }
+        .navigationTitle("Filters")
+
     }
     
     func delete(_ offsets: IndexSet) {
@@ -56,6 +56,25 @@ struct SidebarView: View {
             dataController.delete(item)
         }
     }
+    
+    func delete(_ filter: Filter) {
+        guard let tag = filter.tag else { return }
+        dataController.delete(tag)
+        dataController.save()
+    }
+    
+    //启动和完成重命名过程
+    func rename(_ filter: Filter) {
+        tagToRename = filter.tag
+        tagName = filter.name
+        renamingTag = true
+    }
+
+    func completeRename() {
+        tagToRename?.name = tagName
+        dataController.save()
+    }
+
 
 }
 

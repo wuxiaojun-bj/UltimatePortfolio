@@ -18,8 +18,13 @@ enum Status {
     case all, open, closed
 }
 
+
+/// 负责管理我们核心数据堆栈的环境单机，包括处理保存
+/// 计算获取请求、跟踪奖励和处理样本数据。
 class DataController: ObservableObject {
     //使用CoreData加载和管理本地数据，还负责将该数据与iCloud同步，以便所有用户的设备都能为我们的应用程序共享相同的数据。
+    
+    /// 唯一的CloudKit容器用于存储我们所有的数据
     let container: NSPersistentCloudKitContainer
     
     @Published var selectedFilter: Filter? = Filter.all
@@ -65,7 +70,12 @@ class DataController: ObservableObject {
         dataController.createSampleData()
         return dataController
     }()
-
+    
+    /// 初始化数据控制器，要么在内存中（用于测试和预览等临时用途）
+    /// 或永久存储（用于常规应用程序运行。）
+    ///
+    /// 默认为永久存储。
+    /// - Parameter inMemory: 是否将此数据存储在临时存储器中
     init(inMemory: Bool = false) {
         container = NSPersistentCloudKitContainer(name: "Main")
 
@@ -80,12 +90,19 @@ class DataController: ObservableObject {
         container.viewContext.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
         
         //告诉Core Data，我们希望在商店更改时收到通知
-        container.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
-
+        container.persistentStoreDescriptions.first?.setOption(
+            true as NSNumber,
+            forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey
+        )
         //告诉系统在发生更改时调用我们的newremoteStoreChanged remoteStoreChanged()方法。
-        NotificationCenter.default.addObserver(forName: .NSPersistentStoreRemoteChange, object: container.persistentStoreCoordinator, queue: .main, using: remoteStoreChanged)
-
-        container.loadPersistentStores { storeDescription, error in
+        NotificationCenter.default.addObserver(
+            forName: .NSPersistentStoreRemoteChange,
+            object: container.persistentStoreCoordinator,
+            queue: .main,
+            using: remoteStoreChanged
+        )
+        
+        container.loadPersistentStores { _, error in
             if let error {
                 fatalError("Fatal error loading store: \(error.localizedDescription)")
             }
@@ -113,7 +130,9 @@ class DataController: ObservableObject {
             //CONTAINS[c]谓词格式，该格式进行不区分大小写的比较
             let titlePredicate = NSPredicate(format: "title CONTAINS[c] %@", trimmedFilterText)
             let contentPredicate = NSPredicate(format: "content CONTAINS[c] %@", trimmedFilterText)
-            let combinedPredicate = NSCompoundPredicate(orPredicateWithSubpredicates: [titlePredicate, contentPredicate])
+            let combinedPredicate = NSCompoundPredicate(
+                orPredicateWithSubpredicates: [titlePredicate, contentPredicate]
+            )
             predicates.append(combinedPredicate)
         }
 
@@ -151,21 +170,21 @@ class DataController: ObservableObject {
 
         let allIssues = (try? container.viewContext.fetch(request)) ?? []
         
-        return allIssues.sorted()
+        return allIssues
     }
 
 //方法将创建一堆问题和标签。这仅对测试和预览有用
     func createSampleData() {
         let viewContext = container.viewContext
 
-        for i in 1...5 {
+        for tagCounter in 1...5 {
             let tag = Tag(context: viewContext)
             tag.id = UUID()
-            tag.name = "Tag \(i)"
+            tag.name = "Tag \(tagCounter)"
 
-            for j in 1...10 {
+            for issueCounter in 1...10 {
                 let issue = Issue(context: viewContext)
-                issue.title = "Issue \(i)-\(j)"
+                issue.title = "Issue \(tagCounter)-\(issueCounter)"
                 issue.content = "Description goes here"
                 issue.creationDate = .now
                 issue.completed = Bool.random()
@@ -176,8 +195,12 @@ class DataController: ObservableObject {
 
         try? viewContext.save()
     }
-
+    
+    /// 如果有变化，则保存我们的核心数据上下文。这默默地忽略了
+    /// 保存引起的任何错误，但这应该没问题，因为我们所有的属性都是可选的。
     func save() {
+        saveTask?.cancel()
+
         if container.viewContext.hasChanges {
             try? container.viewContext.save()
         }
@@ -208,7 +231,9 @@ class DataController: ObservableObject {
     private func delete(_ fetchRequest: NSFetchRequest<NSFetchRequestResult>) {
         let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
         batchDeleteRequest.resultType = .resultTypeObjectIDs
-
+        //在执行批量删除时，我们需要确保我们读回结果
+        //然后将该结果的所有更改合并回我们的实时视图上下文中
+        //以便两者保持同步。
         if let delete = try? container.viewContext.execute(batchDeleteRequest) as? NSBatchDeleteResult {
             let changes = [NSDeletedObjectsKey: delete.result as? [NSManagedObjectID] ?? []]
             NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [container.viewContext])
@@ -243,7 +268,65 @@ class DataController: ObservableObject {
         return difference.sorted()
     }
     
-  
+    //创建Issue
+    func newIssue() {
+        let issue = Issue(context: container.viewContext)
+      //  issue.title = "New issue"
+        issue.title = String(localized: "New issue", comment: "Create a new issue")
+        issue.creationDate = .now
+        issue.priority = 1
+
+        if let tag = selectedFilter?.tag {
+            issue.addToTags(tag)
+        }
+
+        save()
+        //将selectedIssue设置为我们刚刚创建的问题，这将立即触发它被选中——iOS将立即触发导航，以便用户开始编辑。
+        selectedIssue = issue
+    }
+
+    //创建Tag
+    func newTag() {
+        let tag = Tag(context: container.viewContext)
+        tag.id = UUID()
+        tag.name = String(localized: "New tag", comment: "Create a new tag")
+       // tag.name = "New tag"
+        save()
+    }
+
+    //计数获取请求
+    func count<T>(for fetchRequest: NSFetchRequest<T>) -> Int {
+        (try? container.viewContext.count(for: fetchRequest)) ?? 0
+    }
+    
+    //评估奖励
+    func hasEarned(award: Award) -> Bool {
+        switch award.criterion {
+        case "issues":
+            // 如果他们添加了一定数量的问题，则返回true
+            let fetchRequest = Issue.fetchRequest()
+            let awardCount = count(for: fetchRequest)
+            return awardCount >= award.value
+
+        case "closed":
+            // 如果他们关闭了一定数量的问题，则返回true
+            let fetchRequest = Issue.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "completed = true")
+            let awardCount = count(for: fetchRequest)
+            return awardCount >= award.value
+
+        case "tags":
+            // 如果他们创建了一定数量的标签，则返回true
+            let fetchRequest = Tag.fetchRequest()
+            let awardCount = count(for: fetchRequest)
+            return awardCount >= award.value
+
+        default:
+            // 一个未知的奖励标准；这永远不应该被允许
+            // fatalError("Unknown award criterion: \(award.criterion)")
+            return false
+        }
+    }
 
 
 
