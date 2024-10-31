@@ -18,7 +18,8 @@ struct IssueRow: View {
                 Image(systemName: "exclamationmark.circle")
                     .imageScale(.large)
                     .opacity(issue.priority == 2 ? 1 : 0)
-
+                    .accessibilityIdentifier(issue.priority == 2 ? "\(issue.issueTitle) High Priority" : "")
+                //增加了一个仅用于测试的优先级标识符
                 VStack(alignment: .leading) {
                     Text(issue.issueTitle)
                         .font(.headline)
@@ -46,6 +47,8 @@ struct IssueRow: View {
             }
         }
         .accessibilityHint(issue.priority == 2 ? "High priority" : "")
+        .accessibilityIdentifier(issue.issueTitle)
+//增加了一个仅用于测试的奖励标识符
     }
 }
 

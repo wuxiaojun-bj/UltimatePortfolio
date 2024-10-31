@@ -6,6 +6,8 @@
 //
 
 import CoreData
+import UIKit
+import SwiftUI
 
 //用户需要能够选择如何对数据进行排序：是按创建日期还是按修改日期。
 enum SortType: String {
@@ -64,6 +66,19 @@ class DataController: ObservableObject {
         return (try? container.viewContext.fetch(request).sorted()) ?? []
     }
     
+    //我们可以告诉它通过将其设为单人来加载我们的托管对象模型（即Main.momd文件）精确一次。
+    static let model: NSManagedObjectModel = {
+        guard let url = Bundle.main.url(forResource: "Main", withExtension: "momd") else {
+            fatalError("Failed to locate model file.")
+        }
+
+        guard let managedObjectModel = NSManagedObjectModel(contentsOf: url) else {
+            fatalError("Failed to load model file.")
+        }
+
+        return managedObjectModel
+    }()
+    
 
     static var preview: DataController = {
         let dataController = DataController(inMemory: true)
@@ -77,7 +92,8 @@ class DataController: ObservableObject {
     /// 默认为永久存储。
     /// - Parameter inMemory: 是否将此数据存储在临时存储器中
     init(inMemory: Bool = false) {
-        container = NSPersistentCloudKitContainer(name: "Main")
+        //这意味着实体将只加载一次，跨测试和真实代码，这将解决崩溃问题.
+        container = NSPersistentCloudKitContainer(name: "Main", managedObjectModel: Self.model)
 
         if inMemory {
             container.persistentStoreDescriptions.first?.url = URL(filePath: "/dev/null")
@@ -103,9 +119,19 @@ class DataController: ObservableObject {
         )
         
         container.loadPersistentStores { _, error in
-            if let error {
+            if let error = error {
                 fatalError("Fatal error loading store: \(error.localizedDescription)")
             }
+          
+            //当应用程序在测试模式下运行时，我们删除所有数据,禁用了我们应用程序的所有动画，这使得UI测试要快得多
+        #if DEBUG
+            if CommandLine.arguments.contains("enable-testing") {
+                self.deleteAll()
+                UIView.setAnimationsEnabled(false)
+
+            }
+        #endif
+            
         }
     }
     
