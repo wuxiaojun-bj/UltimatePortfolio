@@ -16,7 +16,17 @@ struct AwardsView: View {
     var columns: [GridItem] {
         [GridItem(.adaptive(minimum: 100, maximum: 100))]
     }
+    
+    var awardTitle: LocalizedStringKey {
+        if dataController.hasEarned(award: selectedAward) {
+            return "Unlocked: \(selectedAward.name)"
+        } else {
+            return "Locked"
+        }
+    }
+
     //String(localized: selectedAward.description)
+    /*
     var awardTitle: String {
         if dataController.hasEarned(award: selectedAward) {
             return  String(localized: "Unlocked: \(selectedAward.name)")
@@ -26,6 +36,7 @@ struct AwardsView: View {
          //   return "Locked"
         }
     }
+     */
 
     var body: some View {
         NavigationStack {
@@ -42,7 +53,8 @@ struct AwardsView: View {
                                 .scaledToFit()
                                 .padding()
                                 .frame(width: 100, height: 100)
-                                .foregroundColor(color(for: award))
+                                .foregroundStyle(color(for: award))
+                               // .foregroundColor(color(for: award))
 
                         }
                         .accessibilityLabel(label(for: award))

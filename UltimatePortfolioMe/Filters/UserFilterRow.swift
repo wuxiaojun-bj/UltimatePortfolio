@@ -9,7 +9,6 @@ import SwiftUI
 
 struct UserFilterRow: View {
     var filter: Filter
-
     var rename: (Filter) -> Void
     var delete: (Filter) -> Void
 
@@ -32,7 +31,8 @@ struct UserFilterRow: View {
                 }
                 .accessibilityElement()
                 .accessibilityLabel(filter.name)
-                .accessibilityHint("^[\(filter.activeIssuesCount) issue](inflect: true)")
+                .accessibilityHint("\(filter.activeIssuesCount) issues")
+                //.accessibilityHint("^[\(filter.activeIssuesCount) issue](inflect: true)")
                //单，复数
         }
     }

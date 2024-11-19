@@ -25,9 +25,27 @@
       }
     },
     "%@" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@"
+          }
+        }
+      }
+    },
+    "%lld issues" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld issues"
+          }
+        }
+      }
     },
     "^[%lld issue](inflect: true)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -127,6 +145,16 @@
         }
       }
     },
+    "Check Settings" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "检查设置"
+          }
+        }
+      }
+    },
     "Close Issue" : {
       "localizations" : {
         "zh-Hans" : {
@@ -138,6 +166,7 @@
       }
     },
     "Closed" : {
+      "comment" : "This issue has been resolved by the user.",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -237,6 +266,26 @@
         }
       }
     },
+    "Example Issue" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "示例问题"
+          }
+        }
+      }
+    },
+    "Fetching offers…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "获取报价..."
+          }
+        }
+      }
+    },
     "Filter" : {
       "localizations" : {
         "zh-Hans" : {
@@ -263,6 +312,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "过滤器"
+          }
+        }
+      }
+    },
+    "Get the most out of the app" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "充分利用该应用程序"
           }
         }
       }
@@ -294,6 +353,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "高度优先"
+          }
+        }
+      }
+    },
+    "In-app purchases are disabled" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用内购买被禁用"
           }
         }
       }
@@ -401,11 +470,22 @@
       }
     },
     "No tags" : {
+      "comment" : "The user has not created any tags yet",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "没有标签"
+          }
+        }
+      }
+    },
+    "Nothing!" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没什么！"
           }
         }
       }
@@ -430,7 +510,18 @@
         }
       }
     },
+    "Oops!" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "哎呀！"
+          }
+        }
+      }
+    },
     "Open" : {
+      "comment" : "This issue is currently unresolved.",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -470,6 +561,26 @@
         }
       }
     },
+    "Reminder time" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提醒时间"
+          }
+        }
+      }
+    },
+    "Reminders" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提醒"
+          }
+        }
+      }
+    },
     "Rename" : {
       "localizations" : {
         "zh-Hans" : {
@@ -490,6 +601,16 @@
         }
       }
     },
+    "Restore Purchases" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "恢复购买"
+          }
+        }
+      }
+    },
     "Show awards" : {
       "localizations" : {
         "zh-Hans" : {
@@ -500,12 +621,32 @@
         }
       }
     },
+    "Show reminders" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示提醒"
+          }
+        }
+      }
+    },
     "Smart Filters" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "智能过滤器"
+          }
+        }
+      }
+    },
+    "Sorry, there was an error loading our store." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "抱歉，加载我们的商店时出错。"
           }
         }
       }
@@ -550,12 +691,42 @@
         }
       }
     },
+    "There was a problem setting your notification. Please check you have notifications enabled." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置您的通知时出现了问题。请检查您是否启用了通知。"
+          }
+        }
+      }
+    },
+    "This is an example issue." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这是一个示例问题。"
+          }
+        }
+      }
+    },
     "Title" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "标题"
+          }
+        }
+      }
+    },
+    "Try Again" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再试一次"
           }
         }
       }
@@ -586,6 +757,56 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "解锁: %@"
+          }
+        }
+      }
+    },
+    "Up next…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接下来..."
+          }
+        }
+      }
+    },
+    "Upgrade Today!" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天升级！"
+          }
+        }
+      }
+    },
+    "You can't purchase the premium unlock because in-app purchases are disabled on this device.\n\nPlease ask whomever manages your device for assistance." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您无法购买高级解锁，因为此设备禁用了应用内购买。请向管理您设备的人寻求帮助。"
+          }
+        }
+      }
+    },
+    "Your #1 top-priority issue." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您的#1最优先的问题。"
+          }
+        }
+      }
+    },
+    "Your most important issues." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你最重要的问题。"
           }
         }
       }

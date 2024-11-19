@@ -3,11 +3,13 @@
 //  UltimatePortfolioMe
 //
 //  Created by 吴晓军 on 2024/10/9.
-//
+//与Spotlight集成
 
 import CoreData
-import UIKit
+//import UIKit
+import StoreKit
 import SwiftUI
+import WidgetKit
 
 //用户需要能够选择如何对数据进行排序：是按创建日期还是按修改日期。
 enum SortType: String {
@@ -29,6 +31,9 @@ class DataController: ObservableObject {
     /// 唯一的CloudKit容器用于存储我们所有的数据
     let container: NSPersistentCloudKitContainer
     
+    //首先，我们需要一个属性来存储一个活跃的Core Spotlight索引器。
+    var spotlightDelegate: NSCoreDataCoreSpotlightDelegate?
+    
     @Published var selectedFilter: Filter? = Filter.all
     
     @Published var selectedIssue: Issue?
@@ -45,10 +50,20 @@ class DataController: ObservableObject {
     @Published var sortNewestFirst = true
     @Published var filterStatus = Status.all
     @Published var sortType = SortType.dateCreated
+    /// 我们为商店加载的StoreKit产品。扩展中不允许存储属性
+    @Published var products = [Product]()
+
     
     
     //创建一个新的属性来存储Task实例来处理我们的保存
     private var saveTask: Task<Void, Error>?
+    
+    //我们需要创建并存储一个任务，在我们的应用程序启动后立即调用monitorTransactions()。这需要存储，以便只要整个应用程序都在运行，任务就会继续运行。
+    private var storeTask: Task<Void, Never>?
+    
+    // 我们正在保存用户数据的UserDefaults套件.
+    let defaults: UserDefaults
+
 
     //搜索令牌
     var suggestedFilterTokens: [Tag] {
@@ -91,12 +106,27 @@ class DataController: ObservableObject {
     ///
     /// 默认为永久存储。
     /// - Parameter inMemory: 是否将此数据存储在临时存储器中
-    init(inMemory: Bool = false) {
+    ///参数默认值：应存储用户数据的UserDefaults套件
+    init(inMemory: Bool = false, defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+
+        
         //这意味着实体将只加载一次，跨测试和真实代码，这将解决崩溃问题.
         container = NSPersistentCloudKitContainer(name: "Main", managedObjectModel: Self.model)
+        
+        //创建并存储一个任务，在我们的应用程序启动后立即调用monitorTransactions()。应用内购买。
+        storeTask = Task {
+            await monitorTransactions()
+        }
 
         if inMemory {
-            container.persistentStoreDescriptions.first?.url = URL(filePath: "/dev/null")
+            container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
+        } else {
+            let groupID = "group.com.bjwuxiaojun.upa"
+
+            if let url = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: groupID) {
+                container.persistentStoreDescriptions.first?.url = url.appending(path: "Main.sqlite")
+            }
         }
 
         //自动将发生在底层持久存储的任何更改应用于我们的视图上下文，以便两者保持同步，
@@ -110,6 +140,10 @@ class DataController: ObservableObject {
             true as NSNumber,
             forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey
         )
+        
+        //启用历史跟踪
+        container.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+
         //告诉系统在发生更改时调用我们的newremoteStoreChanged remoteStoreChanged()方法。
         NotificationCenter.default.addObserver(
             forName: .NSPersistentStoreRemoteChange,
@@ -118,22 +152,31 @@ class DataController: ObservableObject {
             using: remoteStoreChanged
         )
         
-        container.loadPersistentStores { _, error in
-            if let error = error {
+        container.loadPersistentStores { [weak self] _, error in
+            if let error {
                 fatalError("Fatal error loading store: \(error.localizedDescription)")
             }
-          
-            //当应用程序在测试模式下运行时，我们删除所有数据,禁用了我们应用程序的所有动画，这使得UI测试要快得多
-        #if DEBUG
-            if CommandLine.arguments.contains("enable-testing") {
-                self.deleteAll()
-                UIView.setAnimationsEnabled(false)
-
+          //其次，在我们的初始化器中，我们需要配置持久历史跟踪。一旦我们的持久存储加载完毕，我们就可以这样做
+            if let description = self?.container.persistentStoreDescriptions.first {
+                description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+         //第三，我们需要创建索引委托，将其附加到我们的存储描述和核心数据容器的持久存储协调员中。
+                if let coordinator = self?.container.persistentStoreCoordinator {
+                    self?.spotlightDelegate = NSCoreDataCoreSpotlightDelegate(
+                        forStoreWith: description,
+                        coordinator: coordinator
+                    )
+           // 最后，我们需要告诉索引器开始工作
+                    self?.spotlightDelegate?.startSpotlightIndexing()
+                }
             }
-        #endif
-            
-        }
-    }
+
+            #if DEBUG
+            if CommandLine.arguments.contains("enable-testing") {
+                self?.deleteAll()
+                UIView.setAnimationsEnabled(false)
+            }
+            #endif
+        }    }
     
     //解决方案在于NSPredicate是一个类，并且有一个名为NSCompoundPredicate的子类具有更高级的功能。因为它是一个子类，NSCompoundPredicate能够在我们需要的任何地方看起来像NSPredicate，这意味着我们可以根据用户的精确输入构建一组复杂的过滤器，并让核心数据将它们全部应用作为其获取请求的一部分。
     func issuesForSelectedFilter() -> [Issue] {
@@ -229,6 +272,9 @@ class DataController: ObservableObject {
 
         if container.viewContext.hasChanges {
             try? container.viewContext.save()
+            
+            //每当数据发生变化时，它应该自动刷新任何小部件。这将确保我们的主应用程序和小部件在用户数据变化时保持同步。
+            WidgetCenter.shared.reloadAllTimelines()
         }
     }
     
@@ -296,6 +342,7 @@ class DataController: ObservableObject {
     
     //创建Issue
     func newIssue() {
+        
         let issue = Issue(context: container.viewContext)
       //  issue.title = "New issue"
         issue.title = String(localized: "New issue", comment: "Create a new issue")
@@ -311,13 +358,26 @@ class DataController: ObservableObject {
         selectedIssue = issue
     }
 
-    //创建Tag
-    func newTag() {
+    //创建Tag,用户可以免费创建最多三个标签——之后将提示他们付款.
+    func newTag() -> Bool {
+        
+        var shouldCreate = fullVersionUnlocked
+        if shouldCreate == false {
+            // 检查我们目前有多少个标签
+            shouldCreate = count(for: Tag.fetchRequest()) < 3
+        }
+        
+        guard shouldCreate else {
+            return false
+        }
+
+        
         let tag = Tag(context: container.viewContext)
         tag.id = UUID()
         tag.name = String(localized: "New tag", comment: "Create a new tag")
        // tag.name = "New tag"
         save()
+        return true
     }
 
     //计数获取请求
@@ -325,35 +385,38 @@ class DataController: ObservableObject {
         (try? container.viewContext.count(for: fetchRequest)) ?? 0
     }
     
-    //评估奖励
-    func hasEarned(award: Award) -> Bool {
-        switch award.criterion {
-        case "issues":
-            // 如果他们添加了一定数量的问题，则返回true
-            let fetchRequest = Issue.fetchRequest()
-            let awardCount = count(for: fetchRequest)
-            return awardCount >= award.value
+    
 
-        case "closed":
-            // 如果他们关闭了一定数量的问题，则返回true
-            let fetchRequest = Issue.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "completed = true")
-            let awardCount = count(for: fetchRequest)
-            return awardCount >= award.value
-
-        case "tags":
-            // 如果他们创建了一定数量的标签，则返回true
-            let fetchRequest = Tag.fetchRequest()
-            let awardCount = count(for: fetchRequest)
-            return awardCount >= award.value
-
-        default:
-            // 一个未知的奖励标准；这永远不应该被允许
-            // fatalError("Unknown award criterion: \(award.criterion)")
-            return false
+    //Spotlight中点击问题搜索结果,启动一个问题
+    func issue(with uniqueIdentifier: String) -> Issue? {
+        guard let url = URL(string: uniqueIdentifier) else {
+            return nil
         }
+
+        guard let id = container.persistentStoreCoordinator.managedObjectID(forURIRepresentation: url) else {
+            return nil
+        }
+
+        return try? container.viewContext.existingObject(with: id) as? Issue
     }
 
+    //它将创建一个获取请求，返回一些最高优先级的问题。获取一个未完成且优先级最高的Issue对象
+    func fetchRequestForTopIssues(count: Int) -> NSFetchRequest<Issue> {
+        let request = Issue.fetchRequest()
+        request.predicate = NSPredicate(format: "completed = false")
+
+        request.sortDescriptors = [
+            NSSortDescriptor(keyPath: \Issue.priority, ascending: false)
+        ]
+
+        request.fetchLimit = count
+        return request
+    }
+
+    //如果container或viewContext消失或被重命名，我们只需要更改一个方法，而不是所有调用站点。
+    func results<T: NSManagedObject>(for fetchRequest: NSFetchRequest<T>) -> [T] {
+        return (try? container.viewContext.fetch(fetchRequest)) ?? []
+    }
 
 
 }

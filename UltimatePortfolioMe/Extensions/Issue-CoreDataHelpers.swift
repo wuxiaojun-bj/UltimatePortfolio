@@ -29,10 +29,12 @@ extension Issue {
     
     var issueStatus: String {
         if completed {
-            return String(localized: "Closed")
+            return NSLocalizedString("Closed", comment: "This issue has been resolved by the user.")
+        //    return String(localized: "Closed")
         //    return "Closed"
         } else {
-            return String(localized: "Open")
+            return NSLocalizedString("Open", comment: "This issue is currently unresolved.")
+          //  return String(localized: "Open")
            // return "Open"
         }
     }
@@ -43,15 +45,21 @@ extension Issue {
     }
     
     var issueTagsList: String {
-        guard let tags else {  return String(localized: "No tags") }
+        let noTags = NSLocalizedString("No tags", comment: "The user has not created any tags yet")
+        
+        guard let tags else { return noTags }
 
         if tags.count == 0 {
-            return String(localized: "No tags")
-            //String(localized: "NAME")
+            return noTags
             //return "No tags"
         } else {
             return issueTags.map(\.tagName).formatted()
         }
+    }
+    
+    var issueReminderTime: Date {
+        get { reminderTime ?? .now }
+        set { reminderTime = newValue }
     }
 
     
@@ -60,8 +68,10 @@ extension Issue {
         let viewContext = controller.container.viewContext
 
         let issue = Issue(context: viewContext)
-        issue.title = "Example Issue"
-        issue.content = "This is an example issue."
+        //String(localized: "Example Issue")
+        //String(localized: "This is an example issue.")
+        issue.title = String(localized: "Example Issue")
+        issue.content = String(localized: "This is an example issue.")
         issue.priority = 2
         issue.creationDate = .now
         return issue

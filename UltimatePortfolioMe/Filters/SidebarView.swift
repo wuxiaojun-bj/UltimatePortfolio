@@ -8,77 +8,40 @@
 import SwiftUI
 
 struct SidebarView: View {
-    @EnvironmentObject var dataController: DataController
+    @StateObject private var viewModel: ViewModel
     let smartFilters: [Filter] = [.all, .recent]
-
-    @FetchRequest(sortDescriptors: [SortDescriptor(\.name)]) var tags: FetchedResults<Tag>
-//将我们所有的标签转换为匹配的过滤器，并添加正确的图标。
-    var tagFilters: [Filter] {
-        tags.map { tag in
-            Filter(id: tag.tagID, name: tag.tagName, icon: "tag", tag: tag)
-        }
+    
+    //该初始化器接受数据控制器并使用它来创建视图模型
+    init(dataController: DataController) {
+        let viewModel = ViewModel(dataController: dataController)
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
-    //标签的重命名
-    //重命名哪个标签
-    @State private var tagToRename: Tag?
-    //重命名目前是否正在进行中
-    @State private var renamingTag = false
-    //新标签名称
-    @State private var tagName = ""
 
     var body: some View {
-        
-        List(selection: $dataController.selectedFilter) {
+        List(selection: $viewModel.dataController.selectedFilter) {
             Section("Smart Filters") {
                 ForEach(smartFilters, content: SmartFilterRow.init)
             }
-
+            
             Section("Tags") {
-                ForEach(tagFilters) { filter in
-                    UserFilterRow(filter: filter, rename: rename, delete: delete)
+                ForEach(viewModel.tagFilters) { filter in
+                    UserFilterRow(filter: filter, 
+                                  rename: viewModel.rename,
+                                  delete: viewModel.delete)
                 }
-                .onDelete(perform: delete)
+                .onDelete(perform: viewModel.delete)
             }
         }
         .toolbar(content: SidebarViewToolbar.init)
-        .alert("Rename tag", isPresented: $renamingTag) {
-            Button("OK", action: completeRename)
+        .alert("Rename tag", isPresented: $viewModel.renamingTag) {
+            Button("OK", action: viewModel.completeRename)
             Button("Cancel", role: .cancel) { }
-            TextField("New name", text: $tagName)
+            TextField("New name", text: $viewModel.tagName)
         }
         .navigationTitle("Filters")
-
     }
-    
-    func delete(_ offsets: IndexSet) {
-        for offset in offsets {
-            let item = tags[offset]
-            dataController.delete(item)
-        }
-    }
-    
-    func delete(_ filter: Filter) {
-        guard let tag = filter.tag else { return }
-        dataController.delete(tag)
-        dataController.save()
-    }
-    
-    //启动和完成重命名过程
-    func rename(_ filter: Filter) {
-        tagToRename = filter.tag
-        tagName = filter.name
-        renamingTag = true
-    }
-
-    func completeRename() {
-        tagToRename?.name = tagName
-        dataController.save()
-    }
-
-
 }
 
 #Preview {
-    SidebarView()
-        .environmentObject(DataController.preview)
+    SidebarView(dataController: DataController.preview)
 }

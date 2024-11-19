@@ -8,13 +8,13 @@
 import SwiftUI
 
 struct ContentView: View {
- //   @EnvironmentObject var dataController: DataController
+    @StateObject var dataController = DataController()
     
     var body: some View {
         NavigationSplitView {
-            SidebarView()
+            SidebarView(dataController: dataController)
         } content: {
-            ContentViewMe()
+            ContentViewMe(dataController: dataController)
         } detail: {
             DetailView()
         }
